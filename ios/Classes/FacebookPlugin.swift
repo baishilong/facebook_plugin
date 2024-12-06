@@ -33,7 +33,7 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
     case "deviceModel":
         result(deviceModel());
     case "getIDFA":
-        result(getIDFA());
+        getIDFA(result: result);
     case "getAppVersion":
         result(getAppVersion());
     case "systemVersion":
@@ -76,7 +76,7 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
     
     /// 获取广告标识符 (IDFA)
     /// - Returns: IDFA字符串
-    func getIDFA() -> String? {
+    func getIDFA(result: @escaping FlutterResult) {
         var idfa = ""
         
         if #available(iOS 14, *) {
@@ -85,21 +85,27 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
                 case .authorized:
                     print("用户已授权跟踪 IDFA")
                     idfa = ASIdentifierManager.shared().advertisingIdentifier.uuidString
-                    
+                    result(idfa)
                 case .denied:
                     print("用户已拒绝跟踪 IDFA")
+                    result("")
                 case .notDetermined:
                     print("用户尚未决定是否跟踪 IDFA")
+                    result("")
                 case .restricted:
                     print("应用无法请求跟踪 IDFA 授权")
+                    result("")
                 @unknown default:
                     print("未知状态")
+                    result("")
                 }
             }
+            
         } else {
             idfa = ASIdentifierManager.shared().advertisingIdentifier.uuidString
+            result("")
         }
-        return idfa
+        
     }
     
     
@@ -188,11 +194,10 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
         }
     }
     
-    
 
     /// 检查是否有VPN连接
     func isVPN() -> Bool {
-        
+
         guard let cfDict = CFNetworkCopySystemProxySettings() else {
             return false
         }
