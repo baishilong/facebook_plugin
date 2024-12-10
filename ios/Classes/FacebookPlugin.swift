@@ -42,10 +42,27 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
         result(Locale.preferredLanguages.first ?? "en");
     case "isProxy":
         result(isProxyFunction() ? "1" : "0");
+    case "openAppSettings":
+        openAppSettings(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    
+    func openAppSettings(result: @escaping FlutterResult) {
+        if let appSettings = URL(string: UIApplication.openSettingsURLString) {
+            if UIApplication.shared.canOpenURL(appSettings) {
+                UIApplication.shared.open(appSettings, options: [:], completionHandler: nil)
+                result("1")
+            } else {
+                result("0")
+            }
+        } else {
+            result("0")
+        }
+    }
+
     
     // 是否使用代理 0、1
      func isProxyFunction() -> Bool {

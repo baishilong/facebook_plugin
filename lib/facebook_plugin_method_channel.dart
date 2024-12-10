@@ -70,4 +70,10 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     return result;
   }
 
+  // 跳转到系统设置
+  Future<String?> isProxy() openAppSettings {
+    final result = await methodChannel.invokeMethod<String>('openAppSettings');
+    return result;
+  }
+
 }

@@ -52,4 +52,8 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.isProxy();
   }
 
+  // 跳转到系统设置
+  Future<String?> openAppSettings() {
+    return FacebookPluginPlatform.instance.openAppSettings();
+  }
 }

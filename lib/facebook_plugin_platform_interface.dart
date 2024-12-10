@@ -73,4 +73,9 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('isProxy() has not been implemented.');
   }
 
+  // 跳转到系统设置
+  Future<String?> openAppSettings() {
+    throw UnimplementedError('openAppSettings() has not been implemented.');
+  }
+
 }
