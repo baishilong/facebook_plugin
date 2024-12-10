@@ -71,7 +71,7 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
   }
 
   // 跳转到系统设置
-  Future<String?> openAppSettings {
+  Future<String?> openAppSettings() async {
     final result = await methodChannel.invokeMethod<String>('openAppSettings');
     return result;
   }
