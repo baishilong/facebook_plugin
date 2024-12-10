@@ -56,4 +56,15 @@ class FacebookPlugin {
   Future<String?> openAppSettings() {
     return FacebookPluginPlatform.instance.openAppSettings();
   }
+
+  // 检查相册权限 -1 被拒绝  1 允许权限
+  Future<String?> photoLibraryPermission() {
+    return FacebookPluginPlatform.instance.photoLibraryPermission();
+  }
+
+  // 检查相机权限 -1 被拒绝  1 允许权限
+  Future<String?> cameraAuthorizationPermission() {
+    return FacebookPluginPlatform.instance.cameraAuthorizationPermission();
+  }
+
 }

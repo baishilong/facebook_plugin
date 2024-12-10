@@ -76,4 +76,17 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     return result;
   }
 
+  // 检查相册权限 -1 被拒绝  1 允许权限
+  Future<String?> photoLibraryPermission() async {
+    final result = await methodChannel.invokeMethod<String>('photoLibraryPermission');
+    return result;
+  }
+
+  // 检查相机权限 -1 被拒绝  1 允许权限
+  Future<String?> cameraAuthorizationPermission() async {
+    final result = await methodChannel.invokeMethod<String>('cameraAuthorizationPermission');
+    return result;
+  }
+
+
 }

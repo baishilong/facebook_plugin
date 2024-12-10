@@ -3,6 +3,8 @@ import UIKit
 import FBSDKCoreKit
 import AppTrackingTransparency
 import AdSupport
+import Photos
+import AVFoundation
 
 public class FacebookPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -44,10 +46,94 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
         result(isProxyFunction() ? "1" : "0");
     case "openAppSettings":
         openAppSettings(result: result)
+    case "photoLibraryPermission":
+        checkPhotoLibraryPermission(result: result)
+    case "cameraAuthorizationPermission":
+        checkCameraAuthorization(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    func checkCameraAuthorization(result: @escaping FlutterResult) {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        
+        switch status {
+        case .notDetermined:
+            // 请求相机权限
+            AVCaptureDevice.requestAccess(for: .video) { granted in
+                DispatchQueue.main.async {
+                    if granted {
+                        result("1")
+                    } else {
+                        result("-1")
+
+                    }
+                }
+            }
+        case .restricted, .denied:
+            // 相机权限被拒绝或受限
+            DispatchQueue.main.async {
+                result("-1")
+            }
+        case .authorized:
+            // 相机权限已授权
+            DispatchQueue.main.async {
+                result("1")
+            }
+        default:
+            break
+        }
+    }
+    
+
+    func checkPhotoLibraryPermission(result: @escaping FlutterResult) {
+        var status = PHPhotoLibrary.authorizationStatus()
+        
+        if #available(iOS 14, *) {
+            // For iOS 14 and later, use the newer method with access level.
+            status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+        }
+        
+        switch status {
+        case .authorized, .limited:
+            DispatchQueue.main.async {
+                result("1")
+            }
+        case .denied, .restricted:
+            DispatchQueue.main.async {
+                result("-1")
+                // Handle case when access is denied or restricted
+            }
+        case .notDetermined:
+            if #available(iOS 14, *) {
+                // For iOS 14 and later, use the requestAuthorizationForAccessLevel method
+                PHPhotoLibrary.requestAuthorization(for: .readWrite) { newStatus in
+                    DispatchQueue.main.async {
+                        if newStatus == .authorized || newStatus == .limited {
+                            result("1")
+                        } else {
+                            result("-1")
+                            // Handle the case where authorization was not granted
+                        }
+                    }
+                }
+            } else {
+                // For iOS 12 and earlier, use the old method
+                PHPhotoLibrary.requestAuthorization { newStatus in
+                    DispatchQueue.main.async {
+                        if newStatus == .authorized {
+                            result("1")
+                        } else {
+                            result("-1")
+                        }
+                    }
+                }
+            }
+        default:
+            break
+        }
+    }
     
     
     func openAppSettings(result: @escaping FlutterResult) {

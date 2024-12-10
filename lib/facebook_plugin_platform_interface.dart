@@ -78,4 +78,14 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('openAppSettings() has not been implemented.');
   }
 
+  // 检查相册权限 -1 被拒绝  1 允许权限
+  Future<String?> photoLibraryPermission() {
+    throw UnimplementedError('photoLibraryPermission() has not been implemented.');
+  }
+
+  // 检查相机权限 -1 被拒绝  1 允许权限
+  Future<String?> cameraAuthorizationPermission() {
+    throw UnimplementedError('cameraAuthorizationPermission() has not been implemented.');
+  }
+
 }
