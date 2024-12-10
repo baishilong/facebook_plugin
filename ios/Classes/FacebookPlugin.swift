@@ -5,6 +5,7 @@ import AppTrackingTransparency
 import AdSupport
 import Photos
 import AVFoundation
+import IQKeyboardManagerSwift
 
 public class FacebookPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
@@ -50,6 +51,11 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
         checkPhotoLibraryPermission(result: result)
     case "cameraAuthorizationPermission":
         checkCameraAuthorization(result: result)
+    case "initKeyboardManager":
+        checkCameraAuthorization(result: result)
+        IQKeyboardManager.shared.enable = true  // 启用 IQKeyboardManager
+        IQKeyboardManager.shared.shouldResignOnTouchOutside = true  // 点击屏幕空白区域时键盘收起
+        IQKeyboardManager.shared.enableAutoToolbar = false  // 关闭自动生成 toolbar（如果你不需要的话）
     default:
       result(FlutterMethodNotImplemented)
     }

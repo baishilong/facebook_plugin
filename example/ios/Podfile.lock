@@ -2,6 +2,7 @@ PODS:
   - facebook_plugin (0.0.1):
     - FBSDKCoreKit
     - Flutter
+    - IQKeyboardManagerSwift
   - FBAEMKit (17.4.0):
     - FBSDKCoreKit_Basics (= 17.4.0)
   - FBSDKCoreKit (17.4.0):
@@ -11,6 +12,7 @@ PODS:
   - Flutter (1.0.0)
   - integration_test (0.0.1):
     - Flutter
+  - IQKeyboardManagerSwift (6.5.16)
 
 DEPENDENCIES:
   - facebook_plugin (from `.symlinks/plugins/facebook_plugin/ios`)
@@ -22,6 +24,7 @@ SPEC REPOS:
     - FBAEMKit
     - FBSDKCoreKit
     - FBSDKCoreKit_Basics
+    - IQKeyboardManagerSwift
 
 EXTERNAL SOURCES:
   facebook_plugin:
@@ -32,12 +35,13 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/integration_test/ios"
 
 SPEC CHECKSUMS:
-  facebook_plugin: 9bc99e3fb8057a941399358f5fcd6147aa4957c4
+  facebook_plugin: 33d847152156ba51b1e1467f93e7e1047529143f
   FBAEMKit: 58cb5f302cdd715a56d4c1d0dfdd2e423ac1421a
   FBSDKCoreKit: 94d7461d0cecf441b1ba7c41acfff41daa8ccd41
   FBSDKCoreKit_Basics: 151b43db8b834d3f0e02f95d36a44ffd36265e45
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   integration_test: 252f60fa39af5e17c3aa9899d35d908a0721b573
+  IQKeyboardManagerSwift: 12d89768845bb77b55cc092ecc2b1f9370f06b76
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796
 
