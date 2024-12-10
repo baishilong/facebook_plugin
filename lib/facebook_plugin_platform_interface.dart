@@ -88,9 +88,4 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('cameraAuthorizationPermission() has not been implemented.');
   }
 
-  // 初始化IQKeyboardManager
-  Future<String?> initKeyboardManager() {
-    throw UnimplementedError('initKeyboardManager() has not been implemented.');
-  }
-
 }

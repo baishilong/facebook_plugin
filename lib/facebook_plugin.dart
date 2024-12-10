@@ -67,9 +67,4 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.cameraAuthorizationPermission();
   }
 
-  // 初始化IQKeyboardManager
-  Future<String?> initKeyboardManager() {
-    return FacebookPluginPlatform.instance.initKeyboardManager();
-  }
-
 }

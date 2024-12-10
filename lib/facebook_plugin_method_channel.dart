@@ -88,10 +88,4 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     return result;
   }
 
-  // 初始化IQKeyboardManager
-  Future<String?> initKeyboardManager() async {
-    final result = await methodChannel.invokeMethod<String>('initKeyboardManager');
-    return result;
-  }
-
 }
