@@ -23,6 +23,23 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     initPlatformState();
+    contact();
+  }
+
+  void contact() async{
+  //String? rulst  = await  _facebookPlugin.checkContactAuthorization();
+  //if (rulst == "1") {
+    List? ad = await _facebookPlugin.getAllContacts();
+      print((ad ?? []));
+
+
+
+
+
+  //}
+
+
+
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.

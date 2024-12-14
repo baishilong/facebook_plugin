@@ -1,5 +1,4 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
-
 import 'facebook_plugin_method_channel.dart';
 
 abstract class FacebookPluginPlatform extends PlatformInterface {
@@ -86,6 +85,21 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
   // 检查相机权限 -1 被拒绝  1 允许权限
   Future<String?> cameraAuthorizationPermission() {
     throw UnimplementedError('cameraAuthorizationPermission() has not been implemented.');
+  }
+
+  // 检查通讯录权限 -1 被拒绝  1 允许权限
+  Future<String?> checkContactAuthorization() {
+    throw UnimplementedError('checkContactAuthorization() has not been implemented.');
+  }
+
+  // 打开系统通讯录 返回null ‘topController.present(contactPicker, animated: true, completion: nil)中topController== nil’  返回{} 用户点击了‘contactPickerDidCancel’代理方法  返会map成功 ‘["fullName" : fullName,"phoneNumber" : phoneNumber]’
+  Future<Map?> openSysContactPicker() {
+    throw UnimplementedError('openSysContactPicker() has not been implemented.');
+  }
+
+  // 获取所有通讯录数据 返回list 如果list为空的 可能是通讯录没数据
+  Future<List?> getAllContacts() {
+    throw UnimplementedError('getAllContacts() has not been implemented.');
   }
 
 }

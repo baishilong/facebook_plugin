@@ -5,13 +5,18 @@ import AppTrackingTransparency
 import AdSupport
 import Photos
 import AVFoundation
+import Contacts
+import ContactsUI
 
-public class FacebookPlugin: NSObject, FlutterPlugin {
+public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate {
+    
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "facebook_plugin", binaryMessenger: registrar.messenger())
     let instance = FacebookPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
   }
+
+    var myContactResult: FlutterResult?
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
@@ -50,10 +55,158 @@ public class FacebookPlugin: NSObject, FlutterPlugin {
         checkPhotoLibraryPermission(result: result)
     case "cameraAuthorizationPermission":
         checkCameraAuthorization(result: result)
+    case "checkContactAuthorization":
+        checkContactAuthorization(result: result)
+    case "openSysContactPicker":
+        openSysContactPicker(result: result)
+    case "getAllContacts":
+        getAllContacts(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    func getAllContacts(result: @escaping FlutterResult) {
+       
+        var contactArray = [[String: Any]]()
+        let store = CNContactStore()
+            
+            // 定义要获取的联系人信息
+            let keysToFetch: [CNKeyDescriptor] = [CNContactGivenNameKey as CNKeyDescriptor,
+                                                  CNContactFamilyNameKey as CNKeyDescriptor,
+                                                  CNContactPhoneNumbersKey as CNKeyDescriptor]
+            let request = CNContactFetchRequest(keysToFetch: keysToFetch)
+            DispatchQueue.global(qos: .background).async {
+                
+                do {
+                    try store.enumerateContacts(with: request) { contact, _ in
+                        let fullName = "\(contact.givenName) \(contact.familyName)"
+                        
+                        // 获取每个联系人的电话号码
+                        contact.phoneNumbers.forEach { phoneNumber in
+                            let number = phoneNumber.value.stringValue
+                            var contactInfo: [String: Any] = [
+                                "phone": number,          // 电话号码
+                                "uptime": "",       // 更新时间
+                                "remark": "",            // 备注
+                                "birthday": "",        // 生日
+                                "email": "",          // 邮箱
+                                "creattime": "",         // 创建时间
+                                "name": fullName      // 名字
+                            ]
+                            //                    print("姓名：\(fullName)，电话号码：\(number)")
+                            contactArray.append(contactInfo)
+                            
+                        }
+                        
+                   
+                    }
+                    
+                    DispatchQueue.main.async {
+                        result(contactArray)
+                    }
+                } catch {
+                    
+                    print("获取通讯录失败：\(error.localizedDescription)")
+                }
+            }
+        
+    }
+
+    
+    
+    public func contactPickerDidCancel(_ picker: CNContactPickerViewController) {
+        
+        if ((myContactResult) != nil) {
+            myContactResult!([:])
+        }
+    }
+    
+    
+    public func contactPicker(_ picker: CNContactPickerViewController, didSelect contact: CNContact) {
+        // 获取姓名
+        let fullName = "\(contact.givenName) \(contact.familyName)"
+        
+        // 获取电话号码（选择第一个可用的号码）
+         let phoneNumber = contact.phoneNumbers.first?.value.stringValue ?? ""
+        
+        if ((myContactResult) != nil) {
+            var param = ["fullName" : fullName,"phoneNumber" : phoneNumber]
+            myContactResult!(param)
+        }
+        
+    }
+    
+    
+    func openSysContactPicker(result: @escaping FlutterResult) {
+        myContactResult = result
+        let contactPicker = CNContactPickerViewController()
+        contactPicker.delegate = self
+        contactPicker.modalPresentationStyle = .fullScreen
+        if #available(iOS 13.0, *) {
+            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+               let keyWindow = windowScene.windows.first(where: { $0.isKeyWindow }),
+               let rootViewController = keyWindow.rootViewController {
+                // 获取最顶层的视图控制器
+                var topController = rootViewController
+                while let presentedViewController = topController.presentedViewController {
+                    topController = presentedViewController
+                }
+                topController.present(contactPicker, animated: true, completion: nil)
+                return
+            }
+        } else {
+            // 获取当前视图控制器
+            if let rootViewController = UIApplication.shared.keyWindow?.rootViewController {
+                var topController = rootViewController
+                while let presentedViewController = topController.presentedViewController {
+                    topController = presentedViewController
+                }
+                // 从当前最顶部的视图控制器呈现
+                topController.present(contactPicker, animated: true, completion: nil)
+                return
+            }
+
+            // Fallback on earlier versions
+        }
+        
+        if ((myContactResult) != nil) {
+            myContactResult!([:])
+        }
+    }
+    
+    
+    func checkContactAuthorization(result: @escaping FlutterResult) {
+        let authorizationStatus = CNContactStore.authorizationStatus(for: .contacts)
+        
+        switch authorizationStatus {
+        case .authorized:
+            DispatchQueue.main.async {
+                result("1")
+            }
+        case .denied, .restricted, .limited:
+            DispatchQueue.main.async {
+                result("-1")
+            }
+        case .notDetermined:
+            let store = CNContactStore()
+            store.requestAccess(for: .contacts) { granted, error in
+                DispatchQueue.main.async {
+                    if granted {
+                        result("1")
+                    } else {
+                        result("-1")
+                    }
+                }
+            }
+            
+        @unknown default:
+            DispatchQueue.main.async {
+                // Handle other unknown cases
+            }
+        }
+    }
+    
     
     func checkCameraAuthorization(result: @escaping FlutterResult) {
         let status = AVCaptureDevice.authorizationStatus(for: .video)

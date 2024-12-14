@@ -67,4 +67,18 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.cameraAuthorizationPermission();
   }
 
+  // 检查通讯录权限 -1 被拒绝  1 允许权限
+  Future<String?> checkContactAuthorization() {
+    return FacebookPluginPlatform.instance.checkContactAuthorization();
+  }
+
+  // 打开系统通讯录 返回-1 ‘topController.present(contactPicker, animated: true, completion: nil)中topController== nil’  返回-2 用户点击了‘contactPickerDidCancel’代理方法  返会map成功 ‘["fullName" : fullName,"phoneNumber" : phoneNumber]’
+  Future<Map?> openSysContactPicker() async {
+    return FacebookPluginPlatform.instance.openSysContactPicker();
+  }
+  // 获取所有通讯录数据 返回list 如果list为空的 可能是通讯录没数据
+  Future<List?> getAllContacts() async {
+    return FacebookPluginPlatform.instance.getAllContacts();
+  }
+
 }
