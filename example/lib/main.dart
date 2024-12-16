@@ -35,8 +35,8 @@ class _MyAppState extends State<MyApp> {
       print((ad ?? ""));
 
 if (ad == "1") {
-  Map? map = await _facebookPlugin.getlatitudeAndlongitude();
-  print((map ?? {}));
+  String? map = await _facebookPlugin.requestAppStoreReview();
+  print((map ?? ""));
 
 }
 

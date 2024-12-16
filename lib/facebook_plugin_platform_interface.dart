@@ -117,4 +117,9 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('getlatitudeAndlongitude() has not been implemented.');
   }
 
+  // appstore 评分
+  Future<String?> requestAppStoreReview() {
+    throw UnimplementedError('requestAppStoreReview() has not been implemented.');
+  }
+
 }

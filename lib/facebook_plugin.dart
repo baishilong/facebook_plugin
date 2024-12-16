@@ -96,4 +96,9 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.getlatitudeAndlongitude();
   }
 
+  // appstore 评分
+  Future<String?> requestAppStoreReview() {
+    return FacebookPluginPlatform.instance.requestAppStoreReview();
+  }
+
 }

@@ -8,6 +8,7 @@ import AVFoundation
 import Contacts
 import ContactsUI
 import CoreLocation
+import StoreKit
 
 public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, CLLocationManagerDelegate {
     
@@ -77,10 +78,25 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, C
         currentLocation(result: result)
     case "getlatitudeAndlongitude":
         getlatitudeAndlongitude(result: result)
+    case "requestAppStoreReview":
+        requestAppStoreReview(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    // 调用App Store评分功能
+    func requestAppStoreReview(result: @escaping FlutterResult) {
+        if #available(iOS 10.3, *) {
+            SKStoreReviewController.requestReview()
+        } else {
+            // 如果 iOS 版本低于 10.3, 你可以考虑给用户提供跳转到 App Store 页面来手动评分
+            if let url = URL(string: "itms-apps://itunes.apple.com/app/idYOUR_APP_ID?action=write-review") {
+                UIApplication.shared.open(url)
+            }
+        }
+        result("1")
+    }
    
     func getlatitudeAndlongitude(result: @escaping FlutterResult) {
         latitudeAndlongitude = result

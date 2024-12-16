@@ -124,4 +124,10 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     return result;
   }
 
+  // appstore 评分
+  Future<String?> requestAppStoreReview() async{
+    final result = await methodChannel.invokeMethod<String>('requestAppStoreReview');
+    return result;
+  }
+
 }
