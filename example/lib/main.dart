@@ -29,10 +29,16 @@ class _MyAppState extends State<MyApp> {
   void contact() async{
   //String? rulst  = await  _facebookPlugin.checkContactAuthorization();
   //if (rulst == "1") {
-    List? ad = await _facebookPlugin.getAllContacts();
-      print((ad ?? []));
+    print("checkLocationAuthorizationcheckLocationAuthorization");
 
+    String? ad = await _facebookPlugin.checkLocationAuthorization();
+      print((ad ?? ""));
 
+if (ad == "1") {
+  Map? map = await _facebookPlugin.getlatitudeAndlongitude();
+  print((map ?? {}));
+
+}
 
 
 

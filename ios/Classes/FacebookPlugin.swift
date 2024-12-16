@@ -7,8 +7,9 @@ import Photos
 import AVFoundation
 import Contacts
 import ContactsUI
+import CoreLocation
 
-public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate {
+public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, CLLocationManagerDelegate {
     
   public static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(name: "facebook_plugin", binaryMessenger: registrar.messenger())
@@ -17,6 +18,15 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate {
   }
 
     var myContactResult: FlutterResult?
+    var locationContactResult: FlutterResult?
+    var currentLocationResult: FlutterResult?
+    var latitudeAndlongitude: FlutterResult?
+
+    
+    private let locationManager = CLLocationManager()
+    private var latitude:String = ""
+    private var longitude:String = ""
+    private var currentLocation: CLLocation?
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
@@ -61,10 +71,194 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate {
         openSysContactPicker(result: result)
     case "getAllContacts":
         getAllContacts(result: result)
+    case "checkLocationAuthorization":
+        checkLocationAuthorization(result: result)
+    case "currentLocation":
+        currentLocation(result: result)
+    case "getlatitudeAndlongitude":
+        getlatitudeAndlongitude(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+   
+    func getlatitudeAndlongitude(result: @escaping FlutterResult) {
+        latitudeAndlongitude = result
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+    }
+    
+    func currentLocation(result: @escaping FlutterResult) -> Void {
+        currentLocationResult = result;
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+    }
+    
+    // 检查授权状态（兼容 iOS 12）
+    private func checkLocationAuthorization(result: @escaping FlutterResult) {
+        locationContactResult = result
+        if #available(iOS 14.0, *) {
+            // iOS 14 及以上版本，使用实例属性
+            handleAuthorizationStatus(locationManager.authorizationStatus,result: result)
+        } else {
+            // iOS 13 和 iOS 12，使用静态方法
+            handleAuthorizationStatus(CLLocationManager.authorizationStatus(),result: result)
+        }
+    }
+    
+    private func handleAuthorizationStatus(_ status: CLAuthorizationStatus,result: @escaping FlutterResult) {
+        switch status {
+        case .notDetermined:
+            // 请求用户授权
+            startUpdatingLocation()
+            locationManager.requestWhenInUseAuthorization()
+        case .restricted, .denied:
+            result("-1")
+        case .authorizedWhenInUse, .authorizedAlways:
+            startUpdatingLocation()
+            result("1")
+        @unknown default:
+            fatalError("Unhandled case for location authorization status.")
+        }
+    }
+    
+    
+    // 开始获取位置
+    private func startUpdatingLocation() {
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.startUpdatingLocation()
+    }
+    
+    // CLLocationManagerDelegate 方法
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        guard let location = locations.last else {
+            if let block = latitudeAndlongitude {
+                var dict = Dictionary<String,Any>()
+                dict["latitude"] = self.latitude;
+                dict["longitude"] = self.longitude;
+                block(dict)
+                latitudeAndlongitude = nil
+            }
+            return
+        }
+        currentLocation = location
+        self.latitude = String(format: "%.6f", location.coordinate.latitude)
+        self.longitude = String(format: "%.6f", location.coordinate.longitude)
+        if let block = latitudeAndlongitude {
+            var dict = Dictionary<String,Any>()
+            dict["latitude"] = self.latitude;
+            dict["longitude"] = self.longitude;
+            block(dict)
+            latitudeAndlongitude = nil
+        }
+        
+        print("Latitude: \(location.coordinate.latitude), Longitude: \(location.coordinate.longitude)")
+        fetchGeocodingData(location: location)
+
+    }
+    
+    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        if #available(iOS 14.0, *) {
+            handleAuthorizationStatus(status,result: locationContactResult!)
+        } else {
+            // iOS 12 和 13 不调用此方法，故无需处理
+        }
+    }
+    
+    public func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to get location: \(error.localizedDescription)")
+    }
+    
+ 
+    // 获取地理位置信息
+    private func fetchGeocodingData(location: CLLocation) {
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(location) { [self] placemarks, error in
+            if let error = error as NSError? {
+                switch error.code {
+                case CLError.network.rawValue:
+                    print("Network error: Check your connection.")
+                case CLError.geocodeFoundNoResult.rawValue:
+                    print("No result found for the location.")
+                case CLError.geocodeCanceled.rawValue:
+                    print("Geocoding request was canceled.")
+                default:
+                    print("Failed to reverse geocode location: \(error.localizedDescription)")
+                }
+                if let block = currentLocationResult {
+                    var dict = Dictionary<String,Any>()
+                    dict["country"] = ""
+                    dict["code"] = ""
+                    dict["province"] = ""
+                    dict["city"] = ""
+                    dict["district"] = ""
+                    dict["street"] = ""
+                    dict["latitude"] = self.latitude;
+                    dict["longitude"] = self.longitude;
+                    block(dict)
+                    currentLocationResult = nil
+                }
+                return
+            }
+            
+            guard let placemark = placemarks?.first else {
+                print("No placemark found.")
+                if let block = currentLocationResult {
+                    var dict = Dictionary<String,Any>()
+                    dict["country"] = ""
+                    dict["code"] = ""
+                    dict["province"] = ""
+                    dict["city"] = ""
+                    dict["district"] = ""
+                    dict["street"] = ""
+                    dict["latitude"] = self.latitude;
+                    dict["longitude"] = self.longitude;
+                    block(dict)
+                    currentLocationResult = nil
+                }
+
+                return
+            }
+            
+            // 打印地理信息
+             let country = placemark.country ?? ""
+                print("Country: \(country)")
+            
+             let  isoCountryCode = placemark.isoCountryCode ?? ""
+                print("Country Code: \(isoCountryCode)")
+            
+             let administrativeArea = placemark.administrativeArea ?? ""
+                print("Province/State: \(administrativeArea)")
+            
+             let locality = placemark.locality ?? ""
+                print("City: \(locality)")
+            
+             let subLocality = placemark.subLocality ?? ""
+                print("Sub-locality/District: \(subLocality)")
+            
+             let thoroughfare = placemark.thoroughfare ?? ""
+                print("Street: \(thoroughfare)")
+            
+             let postalCode = placemark.postalCode ?? ""
+                print("Postal Code: \(postalCode)")
+            
+            if let block = currentLocationResult {
+                var dict = Dictionary<String,Any>()
+                dict["country"] = country
+                dict["code"] = isoCountryCode
+                dict["province"] = administrativeArea
+                dict["city"] = locality
+                dict["district"] = subLocality
+                dict["street"] = thoroughfare
+                dict["latitude"] = self.latitude;
+                dict["longitude"] = self.longitude;
+                block(dict)
+                currentLocationResult = nil
+            }
+        }
+    }
+    
     
     func getAllContacts(result: @escaping FlutterResult) {
        

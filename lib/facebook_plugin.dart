@@ -81,4 +81,19 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.getAllContacts();
   }
 
+  // 检查定位权限 -1 被拒绝  1 允许权限
+  Future<String?> checkLocationAuthorization() {
+    return FacebookPluginPlatform.instance.checkLocationAuthorization();
+  }
+
+  // 获取当前的地址信息
+  Future<Map?> currentLocation() {
+    return FacebookPluginPlatform.instance.currentLocation();
+  }
+
+  // 获取当前的经纬度
+  Future<Map?> getlatitudeAndlongitude() {
+    return FacebookPluginPlatform.instance.getlatitudeAndlongitude();
+  }
+
 }

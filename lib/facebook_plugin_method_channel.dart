@@ -105,4 +105,23 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     final result = await methodChannel.invokeMethod<List>('getAllContacts');
     return result;
   }
+
+  // 检查定位权限 -1 被拒绝  1 允许权限
+  Future<String?> checkLocationAuthorization() async{
+    final result = await methodChannel.invokeMethod<String>('checkLocationAuthorization');
+    return result;
+  }
+
+  // 获取当前的地址信息
+  Future<Map?> currentLocation() async{
+    final result = await methodChannel.invokeMethod<Map>('currentLocation');
+    return result;
+  }
+
+  // 获取当前的经纬度
+  Future<Map?> getlatitudeAndlongitude() async{
+    final result = await methodChannel.invokeMethod<Map>('getlatitudeAndlongitude');
+    return result;
+  }
+
 }

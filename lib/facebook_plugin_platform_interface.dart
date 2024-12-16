@@ -102,4 +102,19 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('getAllContacts() has not been implemented.');
   }
 
+  // 检查定位权限 -1 被拒绝  1 允许权限
+  Future<String?> checkLocationAuthorization() {
+    throw UnimplementedError('checkLocationAuthorization() has not been implemented.');
+  }
+
+  // 获取当前的地址信息
+  Future<Map?> currentLocation() {
+    throw UnimplementedError('currentLocation() has not been implemented.');
+  }
+
+  // 获取当前的经纬度
+  Future<Map?> getlatitudeAndlongitude() {
+    throw UnimplementedError('getlatitudeAndlongitude() has not been implemented.');
+  }
+
 }
