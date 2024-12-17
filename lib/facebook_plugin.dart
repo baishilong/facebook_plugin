@@ -101,4 +101,9 @@ class FacebookPlugin {
     return FacebookPluginPlatform.instance.requestAppStoreReview();
   }
 
+  // 拨打电话
+  Future<String?> callPhone(String phoneNumber) {
+    return FacebookPluginPlatform.instance.callPhone(phoneNumber);
+  }
+
 }

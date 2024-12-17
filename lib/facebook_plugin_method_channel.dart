@@ -130,4 +130,10 @@ class MethodChannelFacebookPlugin extends FacebookPluginPlatform {
     return result;
   }
 
+  // 拨打电话
+  Future<String?> callPhone(String phoneNumber) async{
+    final result = await methodChannel.invokeMethod<String>('callPhone',{"phoneNumber":phoneNumber});
+    return result;
+  }
+
 }

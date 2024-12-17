@@ -122,4 +122,8 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
     throw UnimplementedError('requestAppStoreReview() has not been implemented.');
   }
 
+  // 拨打电话 固定写法key {"phoneNumber":phoneNumber}
+  Future<String?> callPhone(String phoneNumber) {
+    throw UnimplementedError('callPhone() has not been implemented.');
+  }
 }

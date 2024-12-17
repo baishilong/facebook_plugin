@@ -80,10 +80,33 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, C
         getlatitudeAndlongitude(result: result)
     case "requestAppStoreReview":
         requestAppStoreReview(result: result)
+    case "callPhone":
+        
+        if let param = call.arguments as? [String:Any],let phone = param["phoneNumber"] as? String {
+            callPhone(result: result,phoneNumber: phone)
+        } else {
+            result("-1");
+        }
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    func callPhone(result: @escaping FlutterResult,phoneNumber: String) {
+        
+        if let phoneURL = URL(string: "tel://\(phoneNumber)") {
+            if UIApplication.shared.canOpenURL(phoneURL) {
+                UIApplication.shared.open(phoneURL, options: [:], completionHandler: nil)
+                result("1")
+            } else {
+                print("This device does not support calling.")
+                result("-1")
+            }
+        } else {
+            print("Invalid phone number URL.")
+            result("-1")
+        }
+    }
     
     // 调用App Store评分功能
     func requestAppStoreReview(result: @escaping FlutterResult) {
