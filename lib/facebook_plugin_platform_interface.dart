@@ -126,4 +126,44 @@ abstract class FacebookPluginPlatform extends PlatformInterface {
   Future<String?> callPhone(String phoneNumber) {
     throw UnimplementedError('callPhone() has not been implemented.');
   }
+
+  // 获取手机信息 如果wifiInfo为空,请到Xcode中 Capability 中开启 Access Wi-Fi Information
+  /*
+  * {
+        "storageAndMemory" {
+            "freeStorage":"可用存储大小",
+            "totalDiskCapacity":"总磁盘容量",
+            "totalPhysicalMemory":"总物理内存",
+            "availableMemorySize":"可用内存大小"
+        },
+        "batteryInfo":{
+            "batteryLevel":"剩余电量",
+            "batteryCharging":"是否正在充电"
+        },
+        "deviceInfo":{
+            "systemVersion":"系统版本",
+            "name":"设备名称，例如 iPhone、iPad、iWatch",
+            "deviceIdentifierNumber":"设备型号，例如 iPhone11,8、iPad Pro 12.9",
+        },
+        "phoneType":{
+            "isSimulator":"是否是模拟器",
+            "isJailbroken":"是否已越狱",
+        },
+        "networkInfo":{
+            "timeIdentifier":"时区的 ID",
+            "firstLanguages":"手机首先语言",
+            "connectionType":"网络类型 2G、3G、4G、5G、WIFI、OTHER"
+        },
+        "wifiInfo":{
+             "wiFiDetails":{
+                "SSID":"Wi-Fi 名字",
+                "BSSID":"Wi-Fi mac地址"
+            }
+        }
+    }
+  * */
+  Future<Map?> getiPhoneInfo() {
+    throw UnimplementedError('getiPhoneInfo() has not been implemented.');
+  }
+
 }

@@ -9,6 +9,11 @@ import Contacts
 import ContactsUI
 import CoreLocation
 import StoreKit
+import SystemConfiguration
+import CoreTelephony
+import SystemConfiguration.CaptiveNetwork
+import MachO
+import UIKit
 
 public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, CLLocationManagerDelegate {
     
@@ -87,10 +92,217 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, C
         } else {
             result("-1");
         }
+    case "getiPhoneInfo":
+        getiPhoneInfo(result: result)
     default:
       result(FlutterMethodNotImplemented)
     }
   }
+    
+    /// 获取手机信息
+    /// - Parameter result: FlutterResult
+    /// - Returns: Void
+    func getiPhoneInfo(result: @escaping FlutterResult) -> Void {
+        
+        var params = [String: Any]()
+        
+        var storageAndMemory = [String: Any]()
+        // 可用存储大小
+        storageAndMemory["freeStorage"] = fetchFreeStorage
+        // 总磁盘容量
+        storageAndMemory["totalDiskCapacity"] = fetchTotalDiskCapacity
+        // 总物理内存
+        storageAndMemory["totalPhysicalMemory"] = fetchTotalPhysicalMemory
+        // 获取可用内存大小
+        storageAndMemory["availableMemorySize"] = getAvailableMemorySize()
+        params["storageAndMemory"] = storageAndMemory
+        
+        var batteryInfo = [String: Any]()
+        // 剩余电量
+        batteryInfo["batteryLevel"] = getRemainingBatteryLevel() // 剩余电
+        // 是否正在充电
+        batteryInfo["batteryCharging"] = isBatteryCharging ? 1 : 0
+        params["batteryInfo"] = batteryInfo
+
+        var deviceInfo = [String: Any]()
+        // 系统版本
+        deviceInfo["systemVersion"] =  UIDevice.current.systemVersion
+        // 设备名称，例如 iPhone、iPad、iWatch
+        deviceInfo["name"] = UIDevice.current.name
+        // 设备型号，例如 iPhone 13、iPad Pro 12.9
+        deviceInfo["deviceIdentifierNumber"] = deviceIdentifierNumber // Device model
+        params["deviceInfo"] = deviceInfo
+
+        var phoneType = [String: Any]()
+        // 是否是模拟器
+        phoneType["isSimulator"] = isSimulator() ? 1 : 0
+        // 是否已越狱
+        phoneType["isJailbroken"] = isJailbroken ? 1 : 0
+        params["phoneType"] = phoneType
+        
+        var networkInfo = [String: Any]()
+        // 时区的 ID
+        networkInfo["timeIdentifier"] = TimeZone.current.identifier // Time zone ID
+        // 手机首先语言
+        networkInfo["firstLanguages"] = Locale.preferredLanguages.first ?? "en"
+        // 网络类型 2G、3G、4G、5G、WIFI、OTHER
+        networkInfo["connectionType"] = networkConnectionType ?? ""
+        params["networkInfo"] = networkInfo
+
+        var wifiInfo = [String: Any]()
+        wifiInfo["wiFiDetails"] = connectedWiFiDetails ?? [:]
+        params["wifiInfo"] = wifiInfo
+
+        result(params)
+        
+    }
+    
+    var connectedWiFiDetails: [String: String]? {
+        guard let interfaces = CNCopySupportedInterfaces() as? [String] else { return nil }
+        return interfaces.compactMap { interface in
+            guard let info = CNCopyCurrentNetworkInfo(interface as CFString) as NSDictionary? else { return nil }
+            guard let ssid = info[kCNNetworkInfoKeySSID as String] as? String else { return nil }
+            guard let bssid = info[kCNNetworkInfoKeyBSSID as String] as? String else { return nil }
+            return ["SSID": ssid, "BSSID": bssid]
+        }.first
+    }
+    
+    // 获取当前网络连接类型
+    var networkConnectionType: String? {
+        var flags = SCNetworkReachabilityFlags()
+        guard let reachability = SCNetworkReachabilityCreateWithName(nil, "www.apple.com") else { return nil }
+        if SCNetworkReachabilityGetFlags(reachability, &flags) {
+            if flags.contains(.reachable) {
+                if flags.contains(.isWWAN) {
+                    if #available(iOS 14.1, *) {
+                        let interface = CTTelephonyNetworkInfo().dataServiceIdentifier
+                        switch interface {
+                        case CTRadioAccessTechnologyNR:
+                            return "5G"
+                        case CTRadioAccessTechnologyLTE:
+                            return "4G"
+                        case CTRadioAccessTechnologyGPRS, CTRadioAccessTechnologyEdge, CTRadioAccessTechnologyCDMA1x:
+                            return "2G"
+                        default:
+                            return "3G"
+                        }
+                    } else {
+                        return "蜂窝网络"
+                    }
+                } else if flags.contains(.isDirect) {
+                    return "Direct Connection"
+                } else {
+                    return "WIFI"
+                }
+            } else {
+                return "No Connection"
+            }
+        } else {
+            return nil
+        }
+    }
+    
+    // 检查设备是否已越狱
+    var isJailbroken: Bool {
+        let paths = ["/Applications/Cydia.app", "/private/var/lib/apt/"]
+        return paths.contains { FileManager.default.fileExists(atPath: $0) }
+    }
+    
+    // 是否是模拟器
+    func isSimulator() -> Bool {
+        return TARGET_OS_SIMULATOR != 0
+    }
+    
+    /// 设备型号，例如 iPhone 13、iPad Pro 12.9
+    var deviceIdentifierNumber: String {
+        var systemInfo = utsname()
+        uname(&systemInfo)
+        let machineMirror = Mirror(reflecting: systemInfo.machine)
+        let identifier = machineMirror.children.reduce("") { identifier, element in
+            guard let value = element.value as? Int8, value != 0 else { return identifier }
+            return identifier + String(UnicodeScalar(UInt8(value)))
+        }
+        
+        return identifier
+    }
+    
+    /// 检查设备是否正在充电
+    var isBatteryCharging: Bool {
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        return UIDevice.current.batteryState == .charging || UIDevice.current.batteryState == .full
+    }
+    
+    
+    func getRemainingBatteryLevel() -> String {
+        // 启用电池监控
+        UIDevice.current.isBatteryMonitoringEnabled = true
+        
+        // 获取电池电量
+        let batteryLevel = UIDevice.current.batteryLevel
+        
+        // 检查电池电量是否可用
+        if batteryLevel < 0 {
+            return "无法获取电池电量"
+        }
+        
+        // 返回电池电量的百分比形式
+        return String(format: "%.0f", batteryLevel * 100)
+    }
+    
+    // 获取可用内存大小
+    func getAvailableMemorySize() -> String {
+        var vmStats = vm_statistics_data_t()
+        var infoCount = mach_msg_type_number_t(MemoryLayout<vm_statistics_data_t>.size) / 4
+        
+        // 使用 UnsafeMutableRawPointer 获取指针
+        let kernReturn = withUnsafeMutablePointer(to: &vmStats) { vmStatsPtr in
+            vmStatsPtr.withMemoryRebound(to: integer_t.self, capacity: 1) { infoPtr in
+                host_statistics(mach_host_self(), HOST_VM_INFO, infoPtr, &infoCount)
+            }
+        }
+        
+        if kernReturn != KERN_SUCCESS {
+            return "内存查找失败"
+        }
+        
+        // 计算可用内存大小
+        let availableMemorySize = (Int64(vm_page_size) * Int64(vmStats.free_count) + Int64(vm_page_size) * Int64(vmStats.inactive_count))
+        
+        // 返回可用内存大小，单位为字节
+        return "\(availableMemorySize)"
+    }
+    
+    // 总物理内存
+    var fetchTotalPhysicalMemory: Int64 {
+        let processInfo = ProcessInfo.processInfo
+        let totalMemory = processInfo.physicalMemory
+        return Int64(totalMemory)
+    }
+    
+    // 总磁盘容量
+    var fetchTotalDiskCapacity: UInt64? {
+        guard let systemAttributes = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory() as String),
+              let totalSize = systemAttributes[.systemSize] as? UInt64 else {
+            return nil
+        }
+        return totalSize
+    }
+    
+    /// 可用存储大小
+    var fetchFreeStorage: UInt64? {
+        do {
+            let results = try URL(fileURLWithPath: NSTemporaryDirectory()).resourceValues(forKeys: [.volumeAvailableCapacityForImportantUsageKey])
+            
+            if let freeSize = results.volumeAvailableCapacityForImportantUsage {
+                return freeSize >= 0 ? UInt64(freeSize) : nil
+            } else {
+                return nil
+            }
+        } catch {
+            print("Error: \(error.localizedDescription)")
+            return nil
+        }
+    }
     
     func callPhone(result: @escaping FlutterResult,phoneNumber: String) {
         

@@ -35,8 +35,8 @@ class _MyAppState extends State<MyApp> {
       print((ad ?? ""));
 
 if (ad == "1") {
-  String? map1 = await _facebookPlugin.callPhone("152877239850");
-  print((map1 ?? ""));
+  Map? map1 = await _facebookPlugin.getiPhoneInfo();
+  print((map1 ?? {}));
 
 }
 
