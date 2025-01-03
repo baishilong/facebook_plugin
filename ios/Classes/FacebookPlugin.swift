@@ -625,11 +625,11 @@ public class FacebookPlugin: NSObject, FlutterPlugin, CNContactPickerDelegate, C
         let authorizationStatus = CNContactStore.authorizationStatus(for: .contacts)
         
         switch authorizationStatus {
-        case .authorized:
+        case .authorized,.limited:
             DispatchQueue.main.async {
                 result("1")
             }
-        case .denied, .restricted, .limited:
+        case .denied, .restricted:
             DispatchQueue.main.async {
                 result("-1")
             }
